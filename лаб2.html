@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Планети Сонячної системи</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="stylesheet" href="https://unpkg.com/@ionic/core/css/ionic.bundle.css" />
+  <style>
+    ion-card { cursor: pointer; height: 100%; transition: 0.3s; }
+    ion-card:hover { transform: scale(1.02); }
+    .planet-img { height: 200px; object-fit: cover; width: 100%; }
+    .chip-container { display: flex; flex-wrap: wrap; gap: 5px; margin: 15px 0; }
+  </style>
+</head>
+<body>
+
+  <ion-app>
+    <ion-router id="router" use-hash="true">
+      <ion-route url="/" component="page-home"></ion-route>
+      <ion-route url="/planet/:id" component="page-details"></ion-route>
+    </ion-router>
+    <ion-router-outlet></ion-router-outlet>
+  </ion-app>
+
+  <script type="module" src="https://unpkg.com/@ionic/core/dist/ionic/ionic.esm.js"></script>
+  <script type="module" src="https://unpkg.com/ionicons/dist/ionicons/ionicons.esm.js"></script>
+
+  <script>
+    const planets = [
+      { id: 'mercury', name: 'Меркурій', image: 'https://upload.wikimedia.org/wikipedia/commons/4/4a/Mercury_in_true_color.jpg', description: 'Найменша планета Сонячної системи та найближча до Сонця.', details: { temperature: '430°C / -180°C', mass: '3.3011×10^23 кг', distance: '57.9 млн км', discovery: 'Давнина', atmosphere: 'Відсутня', satellites: 'Немає', missions: ['Mariner 10', 'MESSENGER', 'BepiColombo'] } },
+      { id: 'earth', name: 'Земля', image: 'https://upload.wikimedia.org/wikipedia/commons/9/97/The_Earth_seen_from_Apollo_17.jpg', description: 'Наша рідна планета, єдина відома з життям.', details: { temperature: '15°C', mass: '5.97237×10^24 кг', distance: '149.6 млн км', discovery: 'Не застосовується', atmosphere: 'Азот, кисень', satellites: 'Місяць', missions: ['Apollo', 'МКС'] } },
+      { id: 'mars', name: 'Марс', image: 'https://upload.wikimedia.org/wikipedia/commons/0/02/OSIRIS_Mars_true_color.jpg', description: 'Четверта планета від Сонця, відома як "Червона планета".', details: { temperature: '-63°C', mass: '6.4171×10^23 кг', distance: '227.9 млн км', discovery: 'Давнина', atmosphere: 'CO2, азот, аргон', satellites: 'Фобос, Деймос', missions: ['Viking', 'Curiosity', 'Perseverance'] } }
+    ];
+
+    // ГИЛОВНА СТОРІНКА
+    class HomePage extends HTMLElement {
+      connectedCallback() {
+        let cards = '';
+        planets.forEach(p => {
+          // Зверніть увагу на href="#/planet/..." — додано решітку
+          cards += `
+            <ion-col size="12" size-md="6">
+              <ion-card href="#/planet/${p.id}">
+                <img src="${p.image}" class="planet-img" />
+                <ion-card-header>
+                  <ion-card-title>${p.name}</ion-card-title>
+                </ion-card-header>
+                <ion-card-content>${p.description}</ion-card-content>
+              </ion-card>
+            </ion-col>`;
+        });
+
+        this.innerHTML = `
+          <ion-header>
+            <ion-toolbar color="primary"><ion-title>Планети</ion-title></ion-toolbar>
+          </ion-header>
+          <ion-content class="ion-padding">
+            <ion-grid><ion-row>${cards}</ion-row></ion-grid>
+          </ion-content>`;
+      }
+    }
+
+    // СТОРІНКА ДЕТАЛЕЙ
+    class DetailsPage extends HTMLElement {
+      connectedCallback() {
+        // Витягуємо ID через Hash для надійності
+        const hash = window.location.hash;
+        const planetId = hash.split('/').pop();
+        const planet = planets.find(p => p.id === planetId);
+
+        if (!planet) {
+          this.innerHTML = `<ion-content>Планету не знайдено</ion-content>`;
+          return;
+        }
+
+        this.innerHTML = `
+          <ion-header>
+            <ion-toolbar color="primary">
+              <ion-buttons slot="start"><ion-back-button default-href="#/"></ion-back-button></ion-buttons>
+              <ion-title>${planet.name}</ion-title>
+            </ion-toolbar>
+          </ion-header>
+          <ion-content class="ion-padding">
+            <ion-breadcrumbs class="ion-margin-bottom">
+              <ion-breadcrumb href="#/">Головна</ion-breadcrumb>
+              <ion-breadcrumb>${planet.name}</ion-breadcrumb>
+            </ion-breadcrumbs>
+            <ion-img src="${planet.image}" style="border-radius:10px; overflow:hidden; margin-bottom:15px;"></ion-img>
+            <h2>${planet.name}</h2>
+            <p>${planet.description}</p>
+            <div class="chip-container">
+              <ion-chip color="danger"><ion-label>🌡️ ${planet.details.temperature}</ion-label></ion-chip>
+              <ion-chip color="primary"><ion-label>⚖️ ${planet.details.mass}</ion-label></ion-chip>
+              <ion-chip color="success"><ion-label>📏 ${planet.details.distance}</ion-label></ion-chip>
+            </div>
+            <ion-accordion-group>
+              <ion-accordion value="atmo">
+                <ion-item slot="header" color="light"><ion-label>Атмосфера</ion-label></ion-item>
+                <div class="ion-padding" slot="content">${planet.details.atmosphere}</div>
+              </ion-accordion>
+              <ion-accordion value="miss">
+                <ion-item slot="header" color="light"><ion-label>Місії</ion-label></ion-item>
+                <div class="ion-padding" slot="content"><ul>${planet.details.missions.map(m => `<li>${m}</li>`).join('')}</ul></div>
+              </ion-accordion>
+            </ion-accordion-group>
+          </ion-content>`;
+      }
+    }
+
+    customElements.define('page-home', HomePage);
+    customElements.define('page-details', DetailsPage);
+  </script>
+</body>
+</html>
